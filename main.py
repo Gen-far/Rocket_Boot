@@ -4,29 +4,48 @@ from util.objects import *
 from util.routines import *
 from util.tools import find_hits
 
+
 class Bot(GoslingAgent):
-    # This function runs every in-game tick (every time the game updates anything)
+    # This function runs every in-game tick (every time the game updates anything)      debug_text = 'example text'
     def run(self):
         if self.intent is not None:
             return
         if self.kickoff_flag:
             self.set_intent(kickoff())
             return
-        
-        if self.is_in_fornt_of_ball():
-            self.set_intent(goto(self.friend_goal_location))
+
+        if self.is_in_front_of_ball():
+            self.set_intent(
+                goto(
+                    self.friend_goal.location,
+                    vector=self.get_closest_large_boost().location,
+                )
+            )
+
+        target = {
+            "at_opponent_goal": (self.foe_goal.left_post, self.foe_goal.right_post),
+            "away_from_our_net": (
+                self.friend_goal.right_post,
+                self.friend_goal.left_post,
+            ),
+        }
+        hits = find_hits(self, target)
+        if len(hits["at_opponent_goal"]) > 0:
+            self.set_intent(hits["at_opponent_goal"][0])
+            print("at their goal")
             return
-        
-        if self.me.boost > 99:
-            self.set_intent(short_shot(self.foe_goal.location))
+        if len(hits["away_from_our_net"]) > 0:
+            print("away fron our goal")
+            self.set_intent(["hits;away_from_net"][0])
             return
 
-
-        if self.me.boost > 99:
+        if self.me.boost > 80:
             self.set_intent(short_shot(self.foe_goal.location))
+        else:
+            self.set_intent
             return
+
         target_boost = self.get_closest_large_boost()
-
         if target_boost is not None:
             self.set_intent(goto(target_boost.location))
             return

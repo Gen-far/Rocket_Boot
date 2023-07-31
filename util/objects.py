@@ -34,7 +34,12 @@ class GoslingAgent(BaseAgent):
         self.controller = SimpleControllerState()
         # a flag that tells us when kickoff is happening
         self.kickoff_flag = False
+        self.debug_text = ''
+        # lists of DebugLine objects that can be drawn for debugging
+        self.debug_lines = []
 
+    
+   
     def get_ready(self, packet):
         # Preps all of the objects that will be updated during play
         field_info = self.get_field_info()
@@ -136,8 +141,41 @@ class GoslingAgent(BaseAgent):
             return True 
         return False 
     
-
+    def is_in_front_of_ball(self):
+        me_to_goal = (self.me.location - self.foe_goal.location).magnitude()
+        ball_to_goal = (self.ball.location -
+                        self.foe_goal.location).magnitude()
+        me_to_own_goal = (self.me.location -
+                          self.friend_goal.location).magnitude()
+        if (me_to_goal < (ball_to_goal)) and (me_to_own_goal > 1000):
+            return True
+        return False
     
+    
+    
+    
+    
+    
+    
+    def print_debug(self):
+        white = self.renderer.white()
+        self.renderer.draw_string_2d(10, 100, 3, 3, self.debug_text, white)
+    
+    def add_debug_line(self, name, vec1, vec2, color=[255, 255, 255]):
+        dupes = [line for line in self.debug_lines if line.name == name]
+        if len(dupes) > 0:
+               return
+        self.debug_lines.append(DebugLine(name, vec1, vec2, self.renderer.create_color(255, *color)))
+   
+    def remove_debug_lines(self, name):
+        self.debug_lines = [line for line in self.lines if line.name != name]
+
+    def clear_debug_lines(self):
+        self.debug_lines = []
+
+    def draw_debug_line(self):
+        for line in self.debug_lines:
+            self.renderer.draw_line_3d(line.vec1, line.vec2, line.color)
 
 
     def run(self):
@@ -452,3 +490,10 @@ class Vector3:
         if start.dot(s) < end.dot(s):
             return end
         return start
+
+class DebugLine():
+    def _init_(self, name, vec1, vec2, color) -> None:
+     self.name = name 
+     self.vec1 = vec1
+     self.vec2 = vec2 
+     self.color = color    
