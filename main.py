@@ -41,20 +41,19 @@ class Bot(GoslingAgent):
         if self.me.boost > 96:
             self.set_intent(short_shot(self.foe_goal.location))
         if self.me.boost < 60:
-            available_boost = [boost for boost in self.boost.large if boost.active]
+            self.get_closest_large_boost()
 
-            closest_boost = None
-            closest_distance = 1000
-            for boost in available_boost:
-                distance = (self.me.location - boost.location).magnitude()
-                if closest_boost is None or distance < closest_distance:
-                    closest_boost = boost
-                    closest_distance = distance
+    def get_closest_large_boost(self):
+        available_boost = [boost for boost in self.boost.large if boost.active]
 
-            if closest_boost is not None:
-                self.set_intent(goto(closest_boost.location))
-                return
+        closest_boost = None
+        closest_distance = 1000
+        for boost in available_boost:
+            distance = (self.me.location - boost.location).magnitude()
+            if closest_boost is None or distance < closest_distance:
+                closest_boost = boost
+                closest_distance = distance
 
-        else:
-            # Default behavior if no specific conditions are met
-            self.set_intent(goto(self.ball.location))
+        if closest_boost is not None:
+            self.set_intent(goto(closest_boost.location))
+            return
